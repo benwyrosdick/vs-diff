@@ -21,7 +21,7 @@ gives Neovim a VS Code-style Source Control view.
 ```
 
 - Changes, Staged Changes, and Merge Changes as separate trees
-- Commit box at the top of the tree, plus **Generate** (AI) and **Commit**
+- Commit box at the top of the tree, plus **Generate** (AI) and **Commit** (becomes Push / Pull / Sync when clean)
 - `<CR>` on a file opens a side-by-side diff (index ↔ worktree, or HEAD ↔ index)
 - Stage / unstage / discard a file, folder, or whole section
 - Works as a LazyVim plugin spec or any lazy.nvim setup
@@ -68,7 +68,7 @@ You can also run `:Neotree vs_diff`.
 
 | Key | Action |
 | --- | --- |
-| `<CR>` | Open a diff, edit the commit box, or press Generate / Commit |
+| `<CR>` | Open a diff, edit the commit box, or press Generate / Commit / Push / Pull |
 | `D` | Toggle float vs split diff |
 | `Q` | Close the current diff |
 | `o` | Open the file, no diff |
@@ -78,7 +78,7 @@ You can also run `:Neotree vs_diff`.
 | `S` / `U` / `X` | Stage / unstage / discard **all** |
 | `a` | Toggle tree vs flat list |
 | `g` | Generate a commit message from staged changes |
-| `c` | Commit using the box (opens it if empty) |
+| `c` | Commit using the box (opens it if empty). Push, pull, or sync when the tree is clean |
 | `R` | Refresh |
 | `q` | Close the tree |
 
@@ -115,6 +115,17 @@ The top of the tree is a small VS Code-style commit area:
 1. `<CR>` on **Message** to write or edit a draft (`<Esc>` / `q` / `<C-s>` saves)
 2. `<CR>` on **Generate** (or press `g`) to draft a message from `git diff --cached`
 3. `<CR>` on **Commit** (or press `c`) to commit
+
+When there is nothing to commit, that last button follows the remote:
+
+| State | Button | Action |
+| --- | --- | --- |
+| Ahead of upstream | **Push (N)** | `git push` |
+| Behind upstream | **Pull (N)** | `git pull` |
+| Ahead and behind | **Sync Changes (N↓ M↑)** | `git pull` then `git push` |
+| No upstream, remote exists | **Publish Branch** | `git push -u <remote> HEAD` |
+
+`c` runs the same action. Counts come from the last-fetched upstream — `R` refreshes local tracking refs, it does not fetch.
 
 Generate prefers a CLI already on your `PATH`, in this order:
 

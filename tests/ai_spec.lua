@@ -56,6 +56,27 @@ local generating = tree.commit_nodes({ message = "", generating = true, staged =
 A.eq(generating[1].name, "Generating…")
 A.eq(generating[2].name, "Generating…")
 
+A.eq(commit.primary_action({ staged = 0, unstaged = 0, ahead = 2 }).action, "push")
+A.eq(commit.primary_action({ staged = 0, unstaged = 0, ahead = 2 }).label, "Push (2)")
+A.eq(commit.primary_action({ staged = 0, unstaged = 0, behind = 3 }).label, "Pull (3)")
+A.eq(commit.primary_action({ staged = 0, unstaged = 0, ahead = 2, behind = 1 }).action, "sync")
+A.eq(commit.primary_action({ staged = 0, unstaged = 0, ahead = 2, behind = 1 }).label, "Sync Changes (1↓ 2↑)")
+A.eq(commit.primary_action({ staged = 0, unstaged = 0, remote = "origin", branch = "main" }).action, "publish")
+A.eq(commit.primary_action({ staged = 2, ahead = 4 }).action, "commit")
+A.eq(commit.primary_action({ staged = 0, unstaged = 0, conflict = 1, ahead = 2 }).action, "commit")
+A.eq(commit.primary_action({ remote_busy = true, remote_kind = "push" }).label, "Pushing…")
+
+local push_nodes = tree.commit_nodes({
+  message = "",
+  staged = 0,
+  unstaged = 0,
+  ahead = 2,
+  behind = 0,
+  upstream = "origin/main",
+})
+A.eq(push_nodes[3].name, "Push (2)")
+A.eq(push_nodes[3].extra.action, "push")
+
 local built = tree.build({}, "tree", { message = "wip", generating = false, staged = 0, unstaged = 0 })
 A.eq(built[1].type, "commit_box")
 A.eq(built[4].type, "message")
@@ -99,4 +120,4 @@ A.eq(claude_job.cmd[2], "-p")
 A.eq(claude_job.stdin, "hello")
 
 vim.fn.delete(bin, "rf")
-return 18
+return 28

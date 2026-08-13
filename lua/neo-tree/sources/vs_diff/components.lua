@@ -55,9 +55,17 @@ M.icon = function(config, node, state)
         highlight = extra.generating and "VsDiffGenerating" or "VsDiffCommitAction",
       }
     end
+    local icons = {
+      commit = config.commit_action_icon or "󰄬",
+      push = config.push_icon or "󰶣",
+      pull = config.pull_icon or "󰶡",
+      sync = config.sync_icon or "",
+      publish = config.publish_icon or "󰶣",
+    }
+    local busy = extra.remote_busy
     return {
-      text = (config.commit_action_icon or "󰄬") .. " ",
-      highlight = "VsDiffCommitAction",
+      text = (busy and "" or (icons[extra.action] or icons.commit)) .. " ",
+      highlight = busy and "VsDiffGenerating" or "VsDiffCommitAction",
     }
   end
   return common.icon(config, node, state)
@@ -68,7 +76,7 @@ M.commit_text = function(config, node, _state)
   local highlight = "VsDiffCommitAction"
   if node.type == "commit_box" then
     highlight = extra.placeholder and "VsDiffCommitPlaceholder" or "VsDiffCommitBox"
-  elseif extra.generating then
+  elseif extra.generating or extra.remote_busy then
     highlight = "VsDiffGenerating"
   end
   return {

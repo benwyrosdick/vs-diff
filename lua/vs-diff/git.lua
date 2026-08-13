@@ -328,6 +328,135 @@ function M.commit(root, message)
   return true
 end
 
+---Parse `git rev-list --left-right --count A...B` (`ahead<TAB>behind`).
+function M.parse_ahead_behind(output)
+  output = vim.trim(output or "")
+  local ahead, behind = output:match("^(%d+)%s+(%d+)$")
+  return tonumber(ahead) or 0, tonumber(behind) or 0
+end
+
+---Parse the first line of `git status -sb`.
+---@param line string
+---@return { branch: string|nil, upstream: string|nil, ahead: integer, behind: integer, gone: boolean }
+function M.parse_short_branch(line)
+  line = vim.trim(line or "")
+  line = line:gsub("^##%s+", "")
+
+  local empty = { branch = nil, upstream = nil, ahead = 0, behind = 0, gone = false }
+  if line == "" then
+    return empty
+  end
+
+  if line:find("^HEAD %(no branch%)") then
+    return { branch = "HEAD", upstream = nil, ahead = 0, behind = 0, gone = false }
+  end
+
+  local rest = line:match("^No commits yet on (.+)$") or line
+  local branch, upstream, tracking = rest:match("^(.-)%.%.%.(%S+)(.*)$")
+  if not branch then
+    branch = rest:match("^(%S+)")
+    return { branch = branch, upstream = nil, ahead = 0, behind = 0, gone = false }
+  end
+
+  local gone = tracking:find("[gone]", 1, true) ~= nil
+  local ahead = tonumber(tracking:match("ahead (%d+)")) or 0
+  local behind = tonumber(tracking:match("behind (%d+)")) or 0
+  return {
+    branch = branch,
+    upstream = (not gone) and upstream or nil,
+    ahead = ahead,
+    behind = behind,
+    gone = gone,
+  }
+end
+
+function M.default_remote(root)
+  local stdout, _, code = run(root, { "remote" })
+  if code ~= 0 then
+    return nil
+  end
+  return vim.trim(stdout):match("([^\n]+)")
+end
+
+---Upstream ahead/behind plus default remote (for Publish).
+function M.branch_status(root)
+  local stdout, stderr, code = run(root, { "status", "-sb", "--untracked-files=no" })
+  if code ~= 0 then
+    return nil, (stderr ~= "" and stderr or stdout)
+  end
+  local first = stdout:match("([^\n]*)") or ""
+  local info = M.parse_short_branch(first)
+  if not info.upstream then
+    info.remote = M.default_remote(root)
+  end
+  return info
+end
+
+local function run_ok(root, args)
+  local stdout, stderr, code = run(root, args)
+  if code ~= 0 then
+    local err = vim.trim((stderr ~= "" and stderr or stdout) or "")
+    return false, err ~= "" and err or ("git " .. args[1] .. " failed")
+  end
+  return true, stdout
+end
+
+function M.push(root)
+  return run_ok(root, { "push" })
+end
+
+function M.pull(root)
+  -- --no-edit: a merge pull must not open COMMIT_EDITMSG in the editor
+  return run_ok(root, { "pull", "--no-edit" })
+end
+
+function M.publish(root, remote)
+  remote = remote or M.default_remote(root)
+  if not remote or remote == "" then
+    return false, "No remote configured"
+  end
+  return run_ok(root, { "push", "-u", remote, "HEAD" })
+end
+
+function M.sync(root)
+  local ok, err = M.pull(root)
+  if not ok then
+    return false, err
+  end
+  return M.push(root)
+end
+
+---Run a git argv list asynchronously. `on_done(ok, err_or_stdout, stdout)`.
+function M.run_async(root, args, on_done)
+  local cmd = { "git" }
+  if root and root ~= "" then
+    cmd[#cmd + 1] = "-C"
+    cmd[#cmd + 1] = root
+  end
+  vim.list_extend(cmd, args)
+
+  local function finish(stdout, stderr, code)
+    local ok = (code or 1) == 0
+    local err = vim.trim((stderr or "") .. ((not ok and stdout and stdout ~= "") and ("\n" .. stdout) or ""))
+    if not ok and err == "" then
+      err = "git " .. (args[1] or "command") .. " failed"
+    end
+    on_done(ok, ok and (stdout or "") or err, stdout or "")
+  end
+
+  if not vim.system then
+    local stdout, stderr, code = run(root, args)
+    finish(stdout, stderr, code)
+    return
+  end
+
+  vim.system(cmd, { text = true }, function(result)
+    vim.schedule(function()
+      finish(result.stdout, result.stderr, result.code)
+    end)
+  end)
+end
+
 function M.fire_git_event()
   local ok, events = pcall(require, "neo-tree.events")
   if ok then

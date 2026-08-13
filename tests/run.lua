@@ -6,6 +6,7 @@ local specs = {
   root .. "/tests/git_spec.lua",
   root .. "/tests/tree_spec.lua",
   root .. "/tests/git_ops_spec.lua",
+  root .. "/tests/remote_spec.lua",
   root .. "/tests/ai_spec.lua",
 }
 

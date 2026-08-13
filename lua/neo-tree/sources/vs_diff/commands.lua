@@ -47,9 +47,9 @@ local function activate_commit_node(state, node)
     commit.generate(root, refresh)
     return true
   end
-  if extra.action == "commit" or extra.kind == "commit" then
-    local staged, unstaged = commit.count_sections(all_entries(state))
-    commit.submit(root, staged, unstaged, refresh)
+  if node.type == "commit_action" or extra.kind == "commit" then
+    local staged, unstaged, conflict = commit.count_sections(all_entries(state))
+    commit.submit(root, staged, unstaged, refresh, { conflict = conflict })
     return true
   end
   return false
@@ -181,8 +181,8 @@ function M.commit(state)
   if not root then
     return
   end
-  local staged, unstaged = commit.count_sections(all_entries(state))
-  commit.submit(root, staged, unstaged, refresh)
+  local staged, unstaged, conflict = commit.count_sections(all_entries(state))
+  commit.submit(root, staged, unstaged, refresh, { conflict = conflict })
 end
 
 function M.generate(state)

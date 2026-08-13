@@ -59,13 +59,22 @@ local function render_status(state)
 
   state.path = root or cwd
   state.vs_diff_entries = entries
-  local staged, unstaged = commit.count_sections(entries)
+  local staged, unstaged, conflict = commit.count_sections(entries)
   local draft = commit.get(root)
+  local remote = git.branch_status(root)
   local nodes, expanded = tree.build(entries, vs_config.get().view, {
     message = draft.message,
     generating = draft.generating,
     staged = staged,
     unstaged = unstaged,
+    conflict = conflict,
+    ahead = remote and remote.ahead or 0,
+    behind = remote and remote.behind or 0,
+    upstream = remote and remote.upstream,
+    remote = remote and remote.remote,
+    branch = remote and remote.branch,
+    remote_busy = draft.remote_busy,
+    remote_kind = draft.remote_kind,
     generator = require("vs-diff.ai").display_name(),
   })
   state.default_expanded_nodes = expanded

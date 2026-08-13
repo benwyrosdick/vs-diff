@@ -24,7 +24,7 @@ COMMANDS                                               *vs-diff-commands*
 ==============================================================================
 MAPPINGS                                               *vs-diff-mappings*
 
-<CR>        Open a diff, edit the commit box, or activate Generate / Commit
+<CR>        Open a diff, edit the commit box, or activate Generate / Commit / Push / Pull
 D           Toggle float vs split diff
 Q           Close the current diff window
 o           Open the working-tree file
@@ -36,11 +36,14 @@ U           Unstage all
 X           Discard all unstaged changes
 a           Toggle tree vs flat list
 g           Generate a commit message from staged changes (CLI or API)
-c           Commit using the box (opens the editor if empty)
+c           Commit, or push / pull / sync when the working tree is clean
 R           Refresh
 q           Close the tree
 
 Visual-mode s / u / x apply to the selected nodes.
+
+When the working tree is clean, Commit becomes Push, Pull, Sync
+Changes, or Publish Branch based on ahead/behind vs upstream.
 
 ==============================================================================
 SETUP                                                     *vs-diff-setup*

@@ -51,15 +51,74 @@ function M.preview(message)
 end
 
 function M.count_sections(entries)
-  local staged, unstaged = 0, 0
+  local staged, unstaged, conflict = 0, 0, 0
   for _, entry in ipairs(entries or {}) do
     if entry.section == "staged" then
       staged = staged + 1
     elseif entry.section == "unstaged" then
       unstaged = unstaged + 1
+    elseif entry.section == "conflict" then
+      conflict = conflict + 1
     end
   end
-  return staged, unstaged
+  return staged, unstaged, conflict
+end
+
+local BUSY_LABELS = {
+  push = "Pushing…",
+  pull = "Pulling…",
+  sync = "Syncing…",
+  publish = "Publishing…",
+}
+
+local DONE_LABELS = {
+  push = "Pushed",
+  pull = "Pulled",
+  sync = "Synced",
+  publish = "Published branch",
+}
+
+---Decide what the primary SCM action button does.
+---@param opts { staged?: integer, unstaged?: integer, conflict?: integer, ahead?: integer, behind?: integer, upstream?: string|nil, remote?: string|nil, branch?: string|nil, remote_busy?: boolean, remote_kind?: string }
+---@return { action: string, label: string }
+function M.primary_action(opts)
+  opts = opts or {}
+  if opts.remote_busy then
+    local kind = opts.remote_kind
+    return {
+      action = kind or "commit",
+      label = BUSY_LABELS[kind] or "Working…",
+    }
+  end
+
+  local staged = opts.staged or 0
+  local unstaged = opts.unstaged or 0
+  local conflict = opts.conflict or 0
+  if staged > 0 then
+    return { action = "commit", label = string.format("Commit (%d)", staged) }
+  end
+  if unstaged > 0 or conflict > 0 then
+    return { action = "commit", label = "Commit (stage all)" }
+  end
+
+  local ahead = opts.ahead or 0
+  local behind = opts.behind or 0
+  if ahead > 0 and behind > 0 then
+    return {
+      action = "sync",
+      label = string.format("Sync Changes (%d↓ %d↑)", behind, ahead),
+    }
+  end
+  if ahead > 0 then
+    return { action = "push", label = string.format("Push (%d)", ahead) }
+  end
+  if behind > 0 then
+    return { action = "pull", label = string.format("Pull (%d)", behind) }
+  end
+  if not opts.upstream and opts.remote and opts.branch and opts.branch ~= "HEAD" then
+    return { action = "publish", label = "Publish Branch" }
+  end
+  return { action = "commit", label = "Commit" }
 end
 
 local function close_win(win)
@@ -129,8 +188,112 @@ function M.edit(root, on_done)
   end, opts)
 end
 
-function M.submit(root, staged_count, unstaged_count, on_done)
+local function remote_args(kind, root)
+  if kind == "push" then
+    return { { "push" } }
+  end
+  if kind == "pull" then
+    return { { "pull", "--no-edit" } }
+  end
+  if kind == "sync" then
+    return { { "pull", "--no-edit" }, { "push" } }
+  end
+  if kind == "publish" then
+    local remote = git.default_remote(root)
+    if not remote then
+      return nil, "No remote configured"
+    end
+    return { { "push", "-u", remote, "HEAD" } }
+  end
+  return nil, "Unknown remote action"
+end
+
+function M.run_remote(root, on_done)
   local state = M.get(root)
+  if state.remote_busy then
+    util.notify("Already pushing/pulling")
+    return
+  end
+
+  local info, err = git.branch_status(root)
+  if not info then
+    util.notify(err or "Unable to read branch status", vim.log.levels.ERROR)
+    return
+  end
+
+  local primary = M.primary_action({
+    ahead = info.ahead,
+    behind = info.behind,
+    upstream = info.upstream,
+    remote = info.remote,
+    branch = info.branch,
+  })
+  local kind = primary.action
+  if kind == "commit" then
+    util.notify("Nothing to commit")
+    return
+  end
+
+  local steps, args_err = remote_args(kind, root)
+  if not steps then
+    util.notify(args_err, vim.log.levels.ERROR)
+    return
+  end
+
+  state.remote_busy = true
+  state.remote_kind = kind
+  if on_done then
+    on_done()
+  end
+  util.notify(BUSY_LABELS[kind] or "Working…")
+
+  local function finish(ok, msg)
+    state.remote_busy = false
+    state.remote_kind = nil
+    if ok then
+      util.notify(msg or DONE_LABELS[kind] or "Done")
+      git.fire_git_event()
+    else
+      util.notify(msg or "git command failed", vim.log.levels.ERROR)
+    end
+    if on_done then
+      on_done(ok)
+    end
+  end
+
+  local i = 1
+  local function step()
+    local args = steps[i]
+    git.run_async(root, args, function(ok, result)
+      if not ok then
+        finish(false, result)
+        return
+      end
+      i = i + 1
+      if i > #steps then
+        finish(true, DONE_LABELS[kind])
+        return
+      end
+      step()
+    end)
+  end
+  step()
+end
+
+function M.submit(root, staged_count, unstaged_count, on_done, extra)
+  extra = extra or {}
+  local state = M.get(root)
+  if state.remote_busy then
+    util.notify("Already pushing/pulling")
+    return
+  end
+
+  local conflict = extra.conflict or 0
+  if staged_count == 0 and unstaged_count == 0 and conflict == 0 then
+    M.run_remote(root, on_done)
+    return
+  end
+
   local message = vim.trim(state.message)
 
   local function do_commit(msg)

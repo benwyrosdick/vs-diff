@@ -124,11 +124,12 @@ local function make_tree_nodes(section, entries)
   return root_children
 end
 
----Commit box + Generate / Commit buttons for the top of the tree.
----@param commit { message: string, generating: boolean, staged: integer, unstaged: integer }
+---Commit box + Generate / Commit (or Push / Pull / Sync) buttons.
+---@param commit table
 function M.commit_nodes(commit)
   commit = commit or {}
-  local preview = require("vs-diff.commit").preview(commit.message)
+  local commit_mod = require("vs-diff.commit")
+  local preview = commit_mod.preview(commit.message)
   local box_name
   if commit.generating then
     box_name = "Generating…"
@@ -146,14 +147,8 @@ function M.commit_nodes(commit)
   else
     generate_name = "Generate"
   end
-  local commit_name
-  if (commit.staged or 0) > 0 then
-    commit_name = string.format("Commit (%d)", commit.staged)
-  elseif (commit.unstaged or 0) > 0 then
-    commit_name = "Commit (stage all)"
-  else
-    commit_name = "Commit"
-  end
+
+  local primary = commit_mod.primary_action(commit)
 
   return {
     {
@@ -179,13 +174,16 @@ function M.commit_nodes(commit)
     },
     {
       id = "commit:submit",
-      name = commit_name,
+      name = primary.label,
       type = "commit_action",
       extra = {
         kind = "commit",
-        action = "commit",
+        action = primary.action,
         staged = commit.staged or 0,
         unstaged = commit.unstaged or 0,
+        ahead = commit.ahead or 0,
+        behind = commit.behind or 0,
+        remote_busy = commit.remote_busy,
       },
     },
   }
