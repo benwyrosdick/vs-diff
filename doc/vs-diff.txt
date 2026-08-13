@@ -24,7 +24,7 @@ COMMANDS                                               *vs-diff-commands*
 ==============================================================================
 MAPPINGS                                               *vs-diff-mappings*
 
-<CR>        Open a diff (expand a folder or section)
+<CR>        Open a diff, edit the commit box, or activate Generate / Commit
 o           Open the working-tree file
 s           Stage file / folder / section
 u           Unstage file / folder / section
@@ -33,7 +33,8 @@ S           Stage all
 U           Unstage all
 X           Discard all unstaged changes
 a           Toggle tree vs flat list
-c           Commit (prompts for a message)
+g           Generate a commit message from staged changes (CLI or API)
+c           Commit using the box (opens the editor if empty)
 R           Refresh
 q           Close the tree
 
@@ -47,12 +48,18 @@ SETUP                                                     *vs-diff-setup*
       confirm_discard = true,
       view = "tree",
       diff = { layout = "vertical" },
+      ai = { backend = "auto", env = "XAI_API_KEY", model = "grok-4.5" },
     })
 
     require("neo-tree").setup({
       sources = { "filesystem", "buffers", "git_status", "vs_diff" },
     })
 <
+
+AI generate (`g` / Generate) uses a local CLI if one is on PATH:
+grok, claude, copilot, codex, gemini, llm, or `gh copilot`. Otherwise it
+falls back to the SpaceXAI HTTP API (`XAI_API_KEY`). Override with
+`opts.ai.backend` or `opts.ai.command`.
 
 Or, from LazyVim: >
 

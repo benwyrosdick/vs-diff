@@ -128,48 +128,7 @@ function M.discard_all(root, entries)
 end
 
 function M.commit(root, staged_count, unstaged_count, on_done)
-  local function finish(ok, err, msg)
-    after(ok, err, msg)
-    if on_done then
-      on_done()
-    end
-  end
-
-  local function ask(prompt)
-    vim.ui.input({ prompt = prompt }, function(message)
-      if message == nil then
-        return
-      end
-      local ok, err = git.commit(root, message)
-      finish(ok, err, "Committed")
-    end)
-  end
-
-  if staged_count == 0 then
-    if unstaged_count == 0 then
-      util.notify("Nothing to commit")
-      return
-    end
-    local cfg = config.get()
-    if cfg.commit_confirm_stage_all then
-      if not util.confirm("No staged changes. Stage all and commit?") then
-        return
-      end
-    end
-    local entries = select(1, git.status(root))
-    if not entries then
-      util.notify("Unable to read git status", vim.log.levels.ERROR)
-      return
-    end
-    local ok, err = git.stage(root, paths(filter(entries, "unstaged")))
-    if not ok then
-      util.notify(err or "Failed to stage", vim.log.levels.ERROR)
-      return
-    end
-    git.fire_git_event()
-  end
-
-  ask("Commit message: ")
+  require("vs-diff.commit").submit(root, staged_count, unstaged_count, on_done)
 end
 
 return M

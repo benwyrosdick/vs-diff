@@ -124,7 +124,74 @@ local function make_tree_nodes(section, entries)
   return root_children
 end
 
-function M.build(entries, view)
+---Commit box + Generate / Commit buttons for the top of the tree.
+---@param commit { message: string, generating: boolean, staged: integer, unstaged: integer }
+function M.commit_nodes(commit)
+  commit = commit or {}
+  local preview = require("vs-diff.commit").preview(commit.message)
+  local box_name
+  if commit.generating then
+    box_name = "Generating…"
+  elseif preview then
+    box_name = preview
+  else
+    box_name = "Message"
+  end
+
+  local generate_name
+  if commit.generating then
+    generate_name = "Generating…"
+  elseif commit.generator then
+    generate_name = "Generate · " .. commit.generator
+  else
+    generate_name = "Generate"
+  end
+  local commit_name
+  if (commit.staged or 0) > 0 then
+    commit_name = string.format("Commit (%d)", commit.staged)
+  elseif (commit.unstaged or 0) > 0 then
+    commit_name = "Commit (stage all)"
+  else
+    commit_name = "Commit"
+  end
+
+  return {
+    {
+      id = "commit:box",
+      name = box_name,
+      type = "commit_box",
+      extra = {
+        kind = "commit_box",
+        message = commit.message or "",
+        generating = commit.generating,
+        placeholder = preview == nil,
+      },
+    },
+    {
+      id = "commit:generate",
+      name = generate_name,
+      type = "commit_action",
+      extra = {
+        kind = "generate",
+        action = "generate",
+        generating = commit.generating,
+      },
+    },
+    {
+      id = "commit:submit",
+      name = commit_name,
+      type = "commit_action",
+      extra = {
+        kind = "commit",
+        action = "commit",
+        staged = commit.staged or 0,
+        unstaged = commit.unstaged or 0,
+      },
+    },
+  }
+end
+
+function M.build(entries, view, commit)
   view = view or "tree"
   local grouped = {
     conflict = {},
@@ -175,14 +242,20 @@ function M.build(entries, view)
   end
 
   if #sections == 0 then
-    return {
+    sections = {
       {
         id = "message:clean",
         name = "No changes",
         type = "message",
         extra = { kind = "message" },
       },
-    }, {}
+    }
+  end
+
+  if commit then
+    local head = M.commit_nodes(commit)
+    vim.list_extend(head, sections)
+    return head, expanded
   end
 
   return sections, expanded

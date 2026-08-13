@@ -4,6 +4,9 @@ A [neo-tree.nvim](https://github.com/nvim-neo-tree/neo-tree.nvim) source that
 gives Neovim a VS Code-style Source Control view.
 
 ```
+󰍩 Message
+󰚩 Generate
+󰄬 Commit (2)
  Merge Changes (1)
     lua/conflict.lua                               C
  Staged Changes (2)
@@ -18,6 +21,7 @@ gives Neovim a VS Code-style Source Control view.
 ```
 
 - Changes, Staged Changes, and Merge Changes as separate trees
+- Commit box at the top of the tree, plus **Generate** (AI) and **Commit**
 - `<CR>` on a file opens a side-by-side diff (index ↔ worktree, or HEAD ↔ index)
 - Stage / unstage / discard a file, folder, or whole section
 - Works as a LazyVim plugin spec or any lazy.nvim setup
@@ -64,14 +68,15 @@ You can also run `:Neotree vs_diff`.
 
 | Key | Action |
 | --- | --- |
-| `<CR>` | Open a diff (or expand a folder / section) |
+| `<CR>` | Open a diff, edit the commit box, or press Generate / Commit |
 | `o` | Open the file, no diff |
 | `s` | Stage file, folder, or section |
 | `u` | Unstage file, folder, or section |
 | `x` / `d` | Discard unstaged changes (confirms) |
 | `S` / `U` / `X` | Stage / unstage / discard **all** |
 | `a` | Toggle tree vs flat list |
-| `c` | Commit (prompts for a message) |
+| `g` | Generate a commit message from staged changes |
+| `c` | Commit using the box (opens it if empty) |
 | `R` | Refresh |
 | `q` | Close the tree |
 
@@ -92,6 +97,34 @@ Selecting a file opens two windows next to the tree:
 
 `:VsDiffClose` tears the pair down.
 
+## Commit box
+
+The top of the tree is a small VS Code-style commit area:
+
+1. `<CR>` on **Message** to write or edit a draft (`<Esc>` / `q` / `<C-s>` saves)
+2. `<CR>` on **Generate** (or press `g`) to draft a message from `git diff --cached`
+3. `<CR>` on **Commit** (or press `c`) to commit
+
+Generate prefers a CLI already on your `PATH`, in this order:
+
+`grok` → `claude` → `copilot` → `codex` → `gemini` → `llm` → `gh copilot`
+
+The button shows which one it picked (`Generate · grok`). Stage something first — it only looks at staged changes.
+
+If no CLI is found, it falls back to the SpaceXAI HTTP API (`XAI_API_KEY`).
+
+```lua
+require("vs-diff").setup({
+  ai = {
+    backend = "auto", -- or "cli", "api", "grok", "claude", "copilot", "codex"
+    -- Force one tool:
+    -- backend = "claude",
+    -- Or any custom command. {{file}} is a temp file with the prompt:
+    -- command = { "grok", "--prompt-file", "{{file}}", "--output-format", "plain" },
+  },
+})
+```
+
 ## Options
 
 ```lua
@@ -102,6 +135,11 @@ require("vs-diff").setup({
   commit_confirm_stage_all = true,
   diff = {
     layout = "vertical", -- or "horizontal"
+  },
+  ai = {
+    backend = "auto",
+    env = "XAI_API_KEY",
+    model = "grok-4.5",
   },
 })
 ```

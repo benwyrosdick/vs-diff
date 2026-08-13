@@ -281,11 +281,22 @@ function M.discard(root, entries)
   return true
 end
 
+function M.staged_diff(root)
+  local stdout, stderr, code = run(root, { "diff", "--cached", "--no-color" })
+  if code ~= 0 then
+    return nil, stderr ~= "" and stderr or stdout
+  end
+  return stdout
+end
+
 function M.commit(root, message)
   if not message or vim.trim(message) == "" then
     return false, "Commit message is empty"
   end
-  local _, stderr, code = run(root, { "commit", "-m", message })
+  local tmp = vim.fn.tempname()
+  vim.fn.writefile(util.split_lines(message), tmp)
+  local _, stderr, code = run(root, { "commit", "-F", tmp })
+  pcall(vim.fn.delete, tmp)
   if code ~= 0 then
     return false, stderr
   end

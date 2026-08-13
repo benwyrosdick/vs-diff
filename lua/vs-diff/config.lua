@@ -10,6 +10,24 @@ local defaults = {
   diff = {
     layout = "vertical", -- "vertical" | "horizontal"
   },
+  ai = {
+    enabled = true,
+    -- auto: first CLI on PATH (grok, claude, copilot, …), else HTTP API
+    backend = "auto", -- "auto" | "cli" | "api" | "grok" | "claude" | "copilot" | "codex" | "gemini" | "llm"
+    cli = "auto",
+    -- Custom argv / shell string / function(ctx). Overrides presets when set.
+    command = nil,
+    label = nil,
+    paths = nil, -- extra directories to search for CLIs
+    timeout_ms = 120000,
+    max_diff_bytes = 80000,
+    -- HTTP fallback (SpaceXAI / xAI)
+    env = "XAI_API_KEY",
+    api_key = nil,
+    base_url = "https://api.x.ai/v1",
+    model = "grok-4.5",
+    temperature = 0.2,
+  },
 }
 
 function M.setup(opts)

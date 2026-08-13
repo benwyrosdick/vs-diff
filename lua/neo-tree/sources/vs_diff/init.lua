@@ -4,6 +4,7 @@ local events = require("neo-tree.events")
 local utils = require("neo-tree.utils")
 local git = require("vs-diff.git")
 local tree = require("vs-diff.tree")
+local commit = require("vs-diff.commit")
 local vs_config = require("vs-diff.config")
 local defaults = require("neo-tree.sources.vs_diff.defaults")
 
@@ -22,6 +23,10 @@ local function define_highlights()
     VsDiffUntracked = "NeoTreeGitUntracked",
     VsDiffRenamed = "NeoTreeGitRenamed",
     VsDiffConflict = "NeoTreeGitConflict",
+    VsDiffCommitBox = "Title",
+    VsDiffCommitPlaceholder = "Comment",
+    VsDiffCommitAction = "Function",
+    VsDiffGenerating = "DiagnosticInfo",
   }
   for name, link in pairs(links) do
     if vim.fn.hlexists(name) == 0 then
@@ -54,7 +59,15 @@ local function render_status(state)
 
   state.path = root or cwd
   state.vs_diff_entries = entries
-  local nodes, expanded = tree.build(entries, vs_config.get().view)
+  local staged, unstaged = commit.count_sections(entries)
+  local draft = commit.get(root)
+  local nodes, expanded = tree.build(entries, vs_config.get().view, {
+    message = draft.message,
+    generating = draft.generating,
+    staged = staged,
+    unstaged = unstaged,
+    generator = require("vs-diff.ai").display_name(),
+  })
   state.default_expanded_nodes = expanded
   renderer.show_nodes(nodes, state)
   state.loading = false

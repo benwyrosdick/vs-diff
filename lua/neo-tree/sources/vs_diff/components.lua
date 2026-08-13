@@ -40,7 +40,41 @@ M.icon = function(config, node, state)
       highlight = config.highlight or "VsDiffSection",
     }
   end
+  if node.type == "commit_box" then
+    return {
+      text = (config.commit_icon or "󰍩") .. " ",
+      highlight = "VsDiffCommitBox",
+    }
+  end
+  if node.type == "commit_action" then
+    local extra = node.extra or {}
+    if extra.action == "generate" then
+      local icon = extra.generating and "" or "󰚩"
+      return {
+        text = icon .. " ",
+        highlight = extra.generating and "VsDiffGenerating" or "VsDiffCommitAction",
+      }
+    end
+    return {
+      text = (config.commit_action_icon or "󰄬") .. " ",
+      highlight = "VsDiffCommitAction",
+    }
+  end
   return common.icon(config, node, state)
+end
+
+M.commit_text = function(config, node, _state)
+  local extra = node.extra or {}
+  local highlight = "VsDiffCommitAction"
+  if node.type == "commit_box" then
+    highlight = extra.placeholder and "VsDiffCommitPlaceholder" or "VsDiffCommitBox"
+  elseif extra.generating then
+    highlight = "VsDiffGenerating"
+  end
+  return {
+    text = node.name,
+    highlight = config.highlight or highlight,
+  }
 end
 
 M.name = function(config, node, state)
