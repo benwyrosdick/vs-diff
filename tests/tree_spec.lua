@@ -13,13 +13,13 @@ local records = git.parse_porcelain(table.concat({
 local entries = git.entries_from_records("/repo", records)
 local nodes, expanded = tree.build(entries, "tree")
 
-A.eq(#nodes, 3, "Merge, Staged, Changes sections")
+A.eq(#nodes, 3, "Merge, Staged, Unstaged sections")
 A.eq(nodes[1].extra.section, "conflict")
 A.eq(nodes[2].extra.section, "staged")
 A.eq(nodes[3].extra.section, "unstaged")
 A.eq(nodes[1].name, "Merge Changes (1)")
 A.eq(nodes[2].name, "Staged Changes (1)")
-A.eq(nodes[3].name, "Changes (3)")
+A.eq(nodes[3].name, "Unstaged Changes (3)")
 
 local changes = nodes[3]
 local names = {}
@@ -57,4 +57,18 @@ local empty = tree.build({}, "tree")
 A.eq(empty[1].type, "message")
 A.eq(empty[1].name, "No changes")
 
-return 7
+local unstaged_only = {}
+for _, e in ipairs(entries) do
+  if e.section == "unstaged" then
+    unstaged_only[#unstaged_only + 1] = e
+  end
+end
+local dirty = tree.build(unstaged_only, "tree")
+A.eq(#dirty, 2, "empty Staged section still shown")
+A.eq(dirty[1].extra.section, "staged")
+A.eq(dirty[1].name, "Staged Changes (0)")
+A.eq(#dirty[1].children, 0)
+A.eq(dirty[2].extra.section, "unstaged")
+A.eq(dirty[2].name, "Unstaged Changes (3)")
+
+return 9

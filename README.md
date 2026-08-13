@@ -12,7 +12,7 @@ gives Neovim a VS Code-style Source Control view.
  Staged Changes (2)
     README.md                                      M
     lua/old.lua → lua/renamed.lua                  R
- Changes (4)
+ Unstaged Changes (4)
    lua
      vs-diff
         git.lua                                    M
@@ -20,7 +20,7 @@ gives Neovim a VS Code-style Source Control view.
     scratch.txt                                    U
 ```
 
-- Changes, Staged Changes, and Merge Changes as separate trees
+- Unstaged Changes, Staged Changes (always shown while dirty, even at 0), and Merge Changes as separate trees
 - Commit box at the top of the tree, plus **Generate** (AI) and **Commit** (becomes Push / Pull / Sync when clean)
 - `<CR>` on a file opens a side-by-side diff (index ↔ worktree, or HEAD ↔ index)
 - Stage / unstage / discard a file, folder, or whole section
@@ -101,9 +101,9 @@ Split mapping (when you want it):
 
 | Section | Left | Right |
 | --- | --- | --- |
-| Changes (modified) | Index | Working tree (editable) |
-| Changes (untracked) | Empty | Working tree |
-| Changes (deleted) | Index | Empty |
+| Unstaged (modified) | Index | Working tree (editable) |
+| Unstaged (untracked) | Empty | Working tree |
+| Unstaged (deleted) | Index | Empty |
 | Staged (modified) | `HEAD` | Index |
 | Staged (new) | Empty | Index |
 | Merge | Opens the conflicted file | |

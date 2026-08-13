@@ -7,7 +7,7 @@ local SECTION_ORDER = { "conflict", "staged", "unstaged" }
 local SECTION_TITLES = {
   conflict = "Merge Changes",
   staged = "Staged Changes",
-  unstaged = "Changes",
+  unstaged = "Unstaged Changes",
 }
 
 local function sort_children(children)
@@ -205,9 +205,12 @@ function M.build(entries, view, commit)
   local sections = {}
   local expanded = {}
 
+  local has_changes = #grouped.conflict > 0 or #grouped.staged > 0 or #grouped.unstaged > 0
+
   for _, key in ipairs(SECTION_ORDER) do
     local list = grouped[key]
-    if #list > 0 then
+    -- Keep Staged Changes visible at (0) whenever anything is dirty.
+    if #list > 0 or (key == "staged" and has_changes) then
       local children = view == "list" and make_list_nodes(key, list) or make_tree_nodes(key, list)
       local id = "section:" .. key
       expanded[#expanded + 1] = id
