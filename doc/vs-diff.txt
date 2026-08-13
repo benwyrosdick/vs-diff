@@ -1,0 +1,62 @@
+*vs-diff.txt*  VS Code-style git changes tree for neo-tree
+
+==============================================================================
+INTRO                                                           *vs-diff*
+
+vs-diff is a neo-tree source that shows unstaged, staged, and conflicted
+files in separate trees. Select a file to open a side-by-side diff, then
+stage, unstage, or discard from the tree.
+
+Requires |neo-tree.nvim|.
+
+==============================================================================
+COMMANDS                                               *vs-diff-commands*
+
+:VsDiff [focus|show|toggle|close]                      *:VsDiff*
+    Open or focus the SCM tree. `toggle` hides it if it is already visible.
+
+:VsDiffClose                                           *:VsDiffClose*
+    Close the side-by-side diff windows opened by vs-diff.
+
+:Neotree vs_diff                                       *:Neotree-vs_diff*
+    Same tree, via neo-tree's own command.
+
+==============================================================================
+MAPPINGS                                               *vs-diff-mappings*
+
+<CR>        Open a diff (expand a folder or section)
+o           Open the working-tree file
+s           Stage file / folder / section
+u           Unstage file / folder / section
+x  or  d    Discard unstaged changes (confirms)
+S           Stage all
+U           Unstage all
+X           Discard all unstaged changes
+a           Toggle tree vs flat list
+c           Commit (prompts for a message)
+R           Refresh
+q           Close the tree
+
+Visual-mode s / u / x apply to the selected nodes.
+
+==============================================================================
+SETUP                                                     *vs-diff-setup*
+
+>lua
+    require("vs-diff").setup({
+      confirm_discard = true,
+      view = "tree",
+      diff = { layout = "vertical" },
+    })
+
+    require("neo-tree").setup({
+      sources = { "filesystem", "buffers", "git_status", "vs_diff" },
+    })
+<
+
+Or, from LazyVim: >
+
+    require("vs-diff").extend_neo_tree_opts(opts)
+<
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
