@@ -8,7 +8,15 @@ local defaults = {
   view = "tree", -- "tree" | "list"
   commit_confirm_stage_all = true,
   diff = {
-    layout = "vertical", -- "vertical" | "horizontal"
+    -- float: one snacks-style window, q dismisses (default)
+    -- split: side-by-side vim diff (q closes the pair)
+    style = "float", -- "float" | "split"
+    layout = "vertical", -- split only: "vertical" | "horizontal"
+    float = {
+      width = 0.82,
+      height = 0.88,
+      border = "rounded",
+    },
   },
   ai = {
     enabled = true,

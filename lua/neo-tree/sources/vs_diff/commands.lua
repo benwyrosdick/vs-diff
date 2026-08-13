@@ -193,6 +193,14 @@ function M.generate(state)
   commit.generate(root, refresh)
 end
 
+function M.close_diff()
+  require("vs-diff.diff").close()
+end
+
+function M.toggle_diff_style()
+  require("vs-diff.diff").toggle_style()
+end
+
 function M.refresh(state)
   refresh()
   if state then

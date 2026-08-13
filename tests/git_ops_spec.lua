@@ -68,9 +68,21 @@ local ok, err = pcall(function()
 
   A.is_true(select(1, git.discard(tmp, { by["unstaged:lua/new.lua"] })))
   A.eq(vim.fn.filereadable(tmp .. "/lua/new.lua"), 0, "untracked file deleted")
+
+  write_file("tracked.lua", "one\npatched\n")
+  entries = assert(git.status(tmp))
+  local tracked
+  for _, e in ipairs(entries) do
+    if e.relpath == "tracked.lua" and e.section == "unstaged" then
+      tracked = e
+    end
+  end
+  A.is_true(tracked ~= nil)
+  local patch = assert(git.unified_diff(tmp, tracked))
+  A.is_true(patch:find("%+patched", 1) ~= nil or patch:find("+patched", 1, true) ~= nil)
 end)
 vim.fn.delete(tmp, "rf")
 if not ok then
   error(err)
 end
-return 6
+return 7

@@ -281,6 +281,31 @@ function M.discard(root, entries)
   return true
 end
 
+---Unified patch for one SCM entry. git-diff exits 1 when the files differ.
+function M.unified_diff(root, entry)
+  if not entry then
+    return nil, "No file"
+  end
+  local args = { "diff", "--no-color", "--no-ext-diff" }
+  if entry.section == "conflict" then
+    args[#args + 1] = "--cc"
+  elseif entry.section == "staged" then
+    args[#args + 1] = "--cached"
+  end
+  if entry.kind == "untracked" then
+    local null = vim.fn.has("win32") == 1 and "NUL" or "/dev/null"
+    args = { "diff", "--no-color", "--no-ext-diff", "--no-index", "--", null, entry.relpath }
+  else
+    args[#args + 1] = "--"
+    args[#args + 1] = entry.relpath
+  end
+  local stdout, stderr, code = run(root, args)
+  if code > 1 then
+    return nil, (stderr ~= "" and stderr or stdout)
+  end
+  return stdout or ""
+end
+
 function M.staged_diff(root)
   local stdout, stderr, code = run(root, { "diff", "--cached", "--no-color" })
   if code ~= 0 then

@@ -25,6 +25,8 @@ COMMANDS                                               *vs-diff-commands*
 MAPPINGS                                               *vs-diff-mappings*
 
 <CR>        Open a diff, edit the commit box, or activate Generate / Commit
+D           Toggle float vs split diff
+Q           Close the current diff window
 o           Open the working-tree file
 s           Stage file / folder / section
 u           Unstage file / folder / section

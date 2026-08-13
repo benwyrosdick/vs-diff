@@ -69,6 +69,8 @@ You can also run `:Neotree vs_diff`.
 | Key | Action |
 | --- | --- |
 | `<CR>` | Open a diff, edit the commit box, or press Generate / Commit |
+| `D` | Toggle float vs split diff |
+| `Q` | Close the current diff |
 | `o` | Open the file, no diff |
 | `s` | Stage file, folder, or section |
 | `u` | Unstage file, folder, or section |
@@ -84,7 +86,18 @@ Visual mode `s` / `u` / `x` apply to the selection.
 
 ## Diffs
 
-Selecting a file opens two windows next to the tree:
+`<CR>` on a file opens a **single floating unified diff** (Snacks fancy renderer
+when `snacks.nvim` is installed). `q` / `<Esc>` dismisses it — no leftover split.
+
+| Style | What you get | Dismiss |
+| --- | --- | --- |
+| `float` (default) | One formatted inline/unified window | `q` |
+| `split` | Side-by-side vim diff | `q` in either pane closes **both** |
+
+`D` in the tree toggles float ↔ split. `Q` closes the current diff.
+`:VsDiffClose` does the same.
+
+Split mapping (when you want it):
 
 | Section | Left | Right |
 | --- | --- | --- |
@@ -94,8 +107,6 @@ Selecting a file opens two windows next to the tree:
 | Staged (modified) | `HEAD` | Index |
 | Staged (new) | Empty | Index |
 | Merge | Opens the conflicted file | |
-
-`:VsDiffClose` tears the pair down.
 
 ## Commit box
 
@@ -134,7 +145,8 @@ require("vs-diff").setup({
   view = "tree", -- or "list"
   commit_confirm_stage_all = true,
   diff = {
-    layout = "vertical", -- or "horizontal"
+    style = "float", -- or "split"
+    layout = "vertical", -- split only
   },
   ai = {
     backend = "auto",
