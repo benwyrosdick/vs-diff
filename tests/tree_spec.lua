@@ -51,7 +51,11 @@ for _, node in ipairs(list_nodes) do
   end
 end
 A.eq(#list_changes.children, 3)
-A.eq(list_changes.children[1].name, "lua/vs-diff/git.lua")
+A.eq(list_changes.children[1].name, "git.lua")
+A.eq(list_changes.children[1].extra.dirpath, "lua/vs-diff")
+A.eq(list_changes.children[2].name, "init.lua")
+A.eq(list_changes.children[3].name, "scratch.txt")
+A.eq(list_changes.children[3].extra.dirpath, "")
 
 local empty = tree.build({}, "tree")
 A.eq(empty[1].type, "message")

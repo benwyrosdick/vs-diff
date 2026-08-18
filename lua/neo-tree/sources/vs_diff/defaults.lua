@@ -28,6 +28,7 @@ local config = {
         "container",
         content = {
           { "name", zindex = 10 },
+          { "file_dir", zindex = 10 },
           { "status_letter", zindex = 20, align = "right" },
         },
       },

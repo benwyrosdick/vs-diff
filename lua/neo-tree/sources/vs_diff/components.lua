@@ -85,6 +85,21 @@ M.commit_text = function(config, node, _state)
   }
 end
 
+M.file_dir = function(config, node, _state)
+  if require("vs-diff.config").get().view ~= "list" then
+    return {}
+  end
+  local extra = node.extra or {}
+  local dir = extra.dirpath
+  if not dir or dir == "" then
+    return {}
+  end
+  return {
+    text = " " .. dir,
+    highlight = config.highlight or "VsDiffFilePath",
+  }
+end
+
 M.name = function(config, node, state)
   if node.type == "section" then
     return M.section_name(config, node, state)

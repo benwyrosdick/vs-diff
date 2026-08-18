@@ -27,6 +27,7 @@ local function define_highlights()
     VsDiffCommitPlaceholder = "Comment",
     VsDiffCommitAction = "Function",
     VsDiffGenerating = "DiagnosticInfo",
+    VsDiffFilePath = "Comment",
   }
   for name, link in pairs(links) do
     if vim.fn.hlexists(name) == 0 then

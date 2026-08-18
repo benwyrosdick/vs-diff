@@ -41,6 +41,10 @@ local function collect_files(node, acc)
   return acc
 end
 
+local function parent_dir(relpath)
+  return (relpath or ""):match("^(.*)/[^/]+$") or ""
+end
+
 local function make_file_node(section, entry)
   return {
     id = string.format("file:%s:%s", section, entry.relpath),
@@ -54,6 +58,8 @@ local function make_file_node(section, entry)
       entry = entry,
       letter = entry.letter,
       git_status = entry.xy,
+      relpath = entry.relpath,
+      dirpath = parent_dir(entry.relpath),
     },
   }
 end
@@ -61,12 +67,14 @@ end
 local function make_list_nodes(section, entries)
   local children = {}
   for _, entry in ipairs(entries) do
-    local node = make_file_node(section, entry)
-    node.name = entry.relpath
-    children[#children + 1] = node
+    children[#children + 1] = make_file_node(section, entry)
   end
   table.sort(children, function(a, b)
-    return a.name:lower() < b.name:lower()
+    local an, bn = a.name:lower(), b.name:lower()
+    if an ~= bn then
+      return an < bn
+    end
+    return (a.extra.dirpath or ""):lower() < (b.extra.dirpath or ""):lower()
   end)
   return children
 end
