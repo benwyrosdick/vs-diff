@@ -35,6 +35,7 @@ local defaults = {
     base_url = "https://api.x.ai/v1",
     model = "grok-4.5",
     temperature = 0.2,
+    effort = "low", -- grok CLI --effort / API reasoning_effort
   },
 }
 

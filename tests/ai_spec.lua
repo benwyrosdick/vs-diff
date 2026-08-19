@@ -109,6 +109,14 @@ local grok_job = ai.presets.grok.build({
 })
 A.eq(grok_job.cmd[1], "/usr/bin/grok")
 A.is_true(vim.tbl_contains(grok_job.cmd, "--prompt-file"))
+A.is_true(vim.tbl_contains(grok_job.cmd, "--effort"))
+local effort_i
+for i, arg in ipairs(grok_job.cmd) do
+  if arg == "--effort" then
+    effort_i = i
+  end
+end
+A.eq(grok_job.cmd[effort_i + 1], "low")
 
 local claude_job = ai.presets.claude.build({
   exe = "/usr/bin/claude",
@@ -120,4 +128,4 @@ A.eq(claude_job.cmd[2], "-p")
 A.eq(claude_job.stdin, "hello")
 
 vim.fn.delete(bin, "rf")
-return 28
+return 30

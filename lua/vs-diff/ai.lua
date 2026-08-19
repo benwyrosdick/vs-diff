@@ -117,6 +117,8 @@ M.presets = {
           "--verbatim",
           "--max-turns",
           "1",
+          "--effort",
+          ctx.effort or "low",
           "--disable-web-search",
           "--no-subagents",
           "--permission-mode",
@@ -345,6 +347,7 @@ local function run_api(cfg, diff, on_done)
   local payload = vim.json.encode({
     model = cfg.model or "grok-4.5",
     temperature = cfg.temperature or 0.2,
+    reasoning_effort = cfg.effort or "low",
     messages = {
       { role = "system", content = M.SYSTEM_PROMPT },
       { role = "user", content = M.user_prompt(diff) },
@@ -418,6 +421,7 @@ local function run_cli(cfg, resolved, diff, root, on_done)
     system = M.SYSTEM_PROMPT,
     exe = resolved.exe,
     model = cfg.model,
+    effort = cfg.effort or "low",
     root = root,
   }
 
