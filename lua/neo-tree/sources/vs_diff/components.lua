@@ -10,12 +10,23 @@ local LETTER_HL = {
   C = "VsDiffConflict",
 }
 
+local SECTION_HL = {
+  conflict = "VsDiffSectionConflict",
+  staged = "VsDiffSectionStaged",
+  unstaged = "VsDiffSection",
+}
+
+local function section_highlight(config, node)
+  local extra = node.extra or {}
+  return config.highlight or SECTION_HL[extra.section] or "VsDiffSection"
+end
+
 local M = {}
 
 M.section_name = function(config, node, _state)
   return {
     text = node.name,
-    highlight = config.highlight or "VsDiffSection",
+    highlight = section_highlight(config, node),
   }
 end
 
@@ -37,7 +48,7 @@ M.icon = function(config, node, state)
     local icon = expanded and (config.expander_expanded or "") or (config.expander_collapsed or "")
     return {
       text = icon .. " ",
-      highlight = config.highlight or "VsDiffSection",
+      highlight = section_highlight(config, node),
     }
   end
   if node.type == "commit_box" then

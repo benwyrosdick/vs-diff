@@ -16,7 +16,8 @@ local M = {
 
 local function define_highlights()
   local links = {
-    VsDiffSection = "Title",
+    VsDiffSection = "Normal",
+    VsDiffSectionStaged = "NeoTreeGitAdded",
     VsDiffAdded = "NeoTreeGitAdded",
     VsDiffModified = "NeoTreeGitModified",
     VsDiffDeleted = "NeoTreeGitDeleted",
@@ -33,6 +34,9 @@ local function define_highlights()
     if vim.fn.hlexists(name) == 0 then
       vim.api.nvim_set_hl(0, name, { link = link, default = true })
     end
+  end
+  if vim.fn.hlexists("VsDiffSectionConflict") == 0 then
+    vim.api.nvim_set_hl(0, "VsDiffSectionConflict", { fg = "Orange", default = true })
   end
 end
 
