@@ -21,7 +21,45 @@ local function section_highlight(config, node)
   return config.highlight or SECTION_HL[extra.section] or "VsDiffSection"
 end
 
+---Colored │ down the left of a section's children (snacks-indent scope style).
+local function section_gutter(config, node)
+  local indent_size = config.indent_size or 2
+  if indent_size < 1 then
+    indent_size = 1
+  end
+  local padding = config.padding or 0
+  local level = node.level or 1
+  local marker = config.indent_marker or "│"
+  local marker_width = vim.fn.strdisplaywidth(marker)
+  local pad_after = math.max(0, indent_size - marker_width)
+
+  local parts = {}
+  if padding > 0 then
+    parts[#parts + 1] = { text = string.rep(" ", padding), no_next_padding = true }
+  end
+  parts[#parts + 1] = {
+    text = marker .. string.rep(" ", pad_after),
+    highlight = SECTION_HL[(node.extra or {}).section] or "VsDiffSection",
+    no_next_padding = true,
+  }
+  if level > 1 then
+    parts[#parts + 1] = {
+      text = string.rep(" ", indent_size * (level - 1)),
+      no_next_padding = true,
+    }
+  end
+  return parts
+end
+
 local M = {}
+
+M.indent = function(config, node, state)
+  local extra = node.extra or {}
+  if extra.section and node.type ~= "section" then
+    return section_gutter(config, node)
+  end
+  return common.indent(config, node, state)
+end
 
 M.section_name = function(config, node, _state)
   return {

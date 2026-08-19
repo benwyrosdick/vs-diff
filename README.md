@@ -8,16 +8,16 @@ gives Neovim a VS Code-style Source Control view.
 󰚩 Generate
 󰄬 Commit (2)
  Merge Changes (1)
-    lua/conflict.lua                               C
+│   lua/conflict.lua                               C
  Staged Changes (2)
-    README.md                                      M
-    lua/old.lua → lua/renamed.lua                  R
+│   README.md                                      M
+│   lua/old.lua → lua/renamed.lua                  R
  Unstaged Changes (4)
-   lua
-     vs-diff
-        git.lua                                    M
-        init.lua                                   M
-    scratch.txt                                    U
+│  lua
+│    vs-diff
+│       git.lua                                    M
+│       init.lua                                   M
+│   scratch.txt                                    U
 ```
 
 - Unstaged Changes, Staged Changes (always shown while dirty, even at 0), and Merge Changes as separate trees
