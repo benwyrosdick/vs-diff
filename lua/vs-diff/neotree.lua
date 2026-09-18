@@ -53,6 +53,14 @@ end
 local function execute(opts)
   M.setup()
   require("neo-tree.command").execute(opts)
+  if opts.action == "focus" then
+    local state = require("neo-tree.sources.manager").get_state("vs_diff")
+    -- Switching sources can reuse the sidebar without entering its window.
+    -- Check the rendered source as a toggle may have just closed it.
+    if require("neo-tree.ui.renderer").window_exists(state) then
+      vim.api.nvim_set_current_win(state.winid)
+    end
+  end
 end
 
 function M.is_open()
