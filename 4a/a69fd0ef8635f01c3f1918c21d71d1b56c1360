@@ -1,0 +1,23 @@
+lua/neo-tree/sources/vs_diff/commands.lua
+  s_7e13b06e295354::t_d2cd903ae27cd9 20
+lua/neo-tree/sources/vs_diff/init.lua
+  s_7e13b06e295354::t_822a55a2412646 5,21-22,36-48,69,107
+lua/vs-diff/neotree.lua
+  s_7e13b06e295354::t_35326e5d27612e 1-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4aa69fd0ef8635f01c3f1918c21d71d1b56c1360",
+  "prompts": {},
+  "sessions": {
+    "s_7e13b06e295354": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "951759ef-eb97-4047-847a-7876e64605ad",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Brandon Mathis <brandon@imathis.com>"
+    }
+  }
+}
