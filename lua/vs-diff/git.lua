@@ -458,11 +458,12 @@ function M.run_async(root, args, on_done)
 end
 
 function M.fire_git_event()
+  pcall(vim.api.nvim_exec_autocmds, "User", { pattern = "VsDiffGit", modeline = false })
+  pcall(vim.api.nvim_exec_autocmds, "User", { pattern = "FugitiveChanged", modeline = false })
   local ok, events = pcall(require, "neo-tree.events")
-  if ok then
+  if ok and events.fire_event and events.GIT_EVENT then
     events.fire_event(events.GIT_EVENT)
   end
-  pcall(vim.api.nvim_exec_autocmds, "User", { pattern = "FugitiveChanged", modeline = false })
 end
 
 return M

@@ -10,7 +10,7 @@ end, {
   complete = function()
     return { "focus", "show", "toggle", "close" }
   end,
-  desc = "Open the VS Code-style git changes tree",
+  desc = "Open the VS Code-style git SCM panel",
 })
 
 vim.api.nvim_create_user_command("VsDiffClose", function()

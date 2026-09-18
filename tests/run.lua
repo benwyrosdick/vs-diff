@@ -8,6 +8,9 @@ local specs = {
   root .. "/tests/git_ops_spec.lua",
   root .. "/tests/remote_spec.lua",
   root .. "/tests/ai_spec.lua",
+  root .. "/tests/render_spec.lua",
+  root .. "/tests/panel_spec.lua",
+  root .. "/tests/host_spec.lua",
 }
 
 local passed, failed = 0, 0

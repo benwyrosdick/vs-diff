@@ -2,10 +2,7 @@ local manager = require("neo-tree.sources.manager")
 local renderer = require("neo-tree.ui.renderer")
 local events = require("neo-tree.events")
 local utils = require("neo-tree.utils")
-local git = require("vs-diff.git")
-local tree = require("vs-diff.tree")
-local commit = require("vs-diff.commit")
-local vs_config = require("vs-diff.config")
+local snapshot = require("vs-diff.snapshot")
 local defaults = require("neo-tree.sources.vs_diff.defaults")
 
 local M = {
@@ -14,32 +11,6 @@ local M = {
   default_config = defaults,
 }
 
-local function define_highlights()
-  local links = {
-    VsDiffSection = "Normal",
-    VsDiffSectionStaged = "NeoTreeGitAdded",
-    VsDiffAdded = "NeoTreeGitAdded",
-    VsDiffModified = "NeoTreeGitModified",
-    VsDiffDeleted = "NeoTreeGitDeleted",
-    VsDiffUntracked = "NeoTreeGitUntracked",
-    VsDiffRenamed = "NeoTreeGitRenamed",
-    VsDiffConflict = "NeoTreeGitConflict",
-    VsDiffCommitBox = "Title",
-    VsDiffCommitPlaceholder = "Comment",
-    VsDiffCommitAction = "Function",
-    VsDiffGenerating = "DiagnosticInfo",
-    VsDiffFilePath = "Comment",
-  }
-  for name, link in pairs(links) do
-    if vim.fn.hlexists(name) == 0 then
-      vim.api.nvim_set_hl(0, name, { link = link, default = true })
-    end
-  end
-  if vim.fn.hlexists("VsDiffSectionConflict") == 0 then
-    vim.api.nvim_set_hl(0, "VsDiffSectionConflict", { fg = "Orange", default = true })
-  end
-end
-
 local function render_status(state)
   if state.loading then
     return
@@ -47,8 +18,8 @@ local function render_status(state)
   state.loading = true
 
   local cwd = state.path or vim.fn.getcwd()
-  local entries, err, root = git.status(cwd)
-  if not entries then
+  local snap, err = snapshot.take(cwd)
+  if not snap then
     state.vs_diff_entries = {}
     renderer.show_nodes({
       {
@@ -62,28 +33,19 @@ local function render_status(state)
     return
   end
 
-  state.path = root or cwd
-  state.vs_diff_entries = entries
-  local staged, unstaged, conflict = commit.count_sections(entries)
-  local draft = commit.get(root)
-  local remote = git.branch_status(root)
-  local nodes, expanded = tree.build(entries, vs_config.get().view, {
-    message = draft.message,
-    generating = draft.generating,
-    staged = staged,
-    unstaged = unstaged,
-    conflict = conflict,
-    ahead = remote and remote.ahead or 0,
-    behind = remote and remote.behind or 0,
-    upstream = remote and remote.upstream,
-    remote = remote and remote.remote,
-    branch = remote and remote.branch,
-    remote_busy = draft.remote_busy,
-    remote_kind = draft.remote_kind,
-    generator = require("vs-diff.ai").display_name(),
-  })
-  state.default_expanded_nodes = expanded
-  renderer.show_nodes(nodes, state)
+  state.path = snap.root or cwd
+  state.vs_diff_entries = snap.entries
+  state.default_expanded_nodes = {}
+  local function gather(nodes)
+    for _, node in ipairs(nodes or {}) do
+      if node.children then
+        state.default_expanded_nodes[#state.default_expanded_nodes + 1] = node.id
+        gather(node.children)
+      end
+    end
+  end
+  gather(snap.nodes)
+  renderer.show_nodes(snap.nodes, state)
   state.loading = false
 end
 
@@ -104,7 +66,7 @@ function M.refresh()
 end
 
 function M.setup(config, global_config)
-  define_highlights()
+  require("vs-diff.highlights").define()
 
   if config.before_render then
     manager.subscribe(M.name, {
@@ -142,7 +104,7 @@ function M.setup(config, global_config)
 
   manager.subscribe(M.name, {
     event = events.VIM_COLORSCHEME,
-    handler = define_highlights,
+    handler = require("vs-diff.highlights").define,
   })
 end
 

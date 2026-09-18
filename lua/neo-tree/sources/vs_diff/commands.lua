@@ -17,8 +17,7 @@ local function root_of(state)
 end
 
 local function all_entries(state)
-  local entries = state.vs_diff_entries or {}
-  return entries
+  return state.vs_diff_entries or {}
 end
 
 local function current_node(state)

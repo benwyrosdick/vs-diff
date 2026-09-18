@@ -1,23 +1,22 @@
 # vs-diff
 
-A [neo-tree.nvim](https://github.com/nvim-neo-tree/neo-tree.nvim) source that
-gives Neovim a VS Code-style Source Control view.
+A VS Code-style Source Control panel for Neovim.
 
 ```
 󰍩 Message
 󰚩 Generate
 󰄬 Commit (2)
  Merge Changes (1)
-│   lua/conflict.lua                               C
+│ lua/conflict.lua                                 C
  Staged Changes (2)
-│   README.md                                      M
-│   lua/old.lua → lua/renamed.lua                  R
+│ README.md                                        M
+│ lua/old.lua → lua/renamed.lua                    R
  Unstaged Changes (4)
 │  lua
 │    vs-diff
-│       git.lua                                    M
-│       init.lua                                   M
-│   scratch.txt                                    U
+│     git.lua                                      M
+│     init.lua                                     M
+│ scratch.txt                                      U
 ```
 
 - Unstaged Changes, Staged Changes (always shown while dirty, even at 0), and Merge Changes as separate trees
@@ -25,6 +24,7 @@ gives Neovim a VS Code-style Source Control view.
 - `<CR>` on a file opens a side-by-side diff (index ↔ worktree, or HEAD ↔ index)
 - Stage / unstage / discard a file, folder, or whole section
 - Works as a LazyVim plugin spec or any lazy.nvim setup
+- Hosts itself in **neo-tree** or **Snacks explorer** when those are present, otherwise uses a built-in sidebar
 
 ## Install (LazyVim)
 
@@ -33,38 +33,50 @@ Create `~/.config/nvim/lua/plugins/vs-diff.lua`:
 ```lua
 return {
   {
-    -- after you push this repo, switch `dir` to "you/vs-diff"
-    dir = "~/projects/vs-diff",
-    name = "vs-diff",
-    dependencies = { "nvim-neo-tree/neo-tree.nvim" },
+    "benwyrosdick/vs-diff",
     opts = {},
     keys = {
-      { "<leader>ge", "<cmd>VsDiff<cr>", desc = "Git Changes (SCM)" },
+      { "<leader>ge", "<cmd>VsDiff toggle<cr>", desc = "Git Changes (SCM)" },
     },
-  },
-  {
-    "nvim-neo-tree/neo-tree.nvim",
-    opts = function(_, opts)
-      return require("vs-diff").extend_neo_tree_opts(opts)
-    end,
   },
 }
 ```
 
-The helper adds `vs_diff` to neo-tree `sources` and the source selector.
+If neo-tree is installed, add this so vs-diff registers as a source:
+
+```lua
+{
+  "nvim-neo-tree/neo-tree.nvim",
+  optional = true,
+  opts = function(_, opts)
+    return require("vs-diff").extend_neo_tree_opts(opts)
+  end,
+}
+```
+
+For local development, use `dir` instead of the GitHub spec:
+
+```lua
+{
+  dir = "~/projects/vs-diff",
+  name = "vs-diff",
+  opts = {},
+  keys = {
+    { "<leader>ge", "<cmd>VsDiff toggle<cr>", desc = "Git Changes (SCM)" },
+  },
+}
+```
 
 ## Commands
 
 | Command | Action |
 | --- | --- |
-| `:VsDiff` | Focus the SCM tree |
-| `:VsDiff toggle` | Toggle the SCM tree |
-| `:VsDiff close` | Close the SCM tree |
+| `:VsDiff` | Focus the SCM panel |
+| `:VsDiff toggle` | Toggle the SCM panel |
+| `:VsDiff close` | Close the SCM panel |
 | `:VsDiffClose` | Close the side-by-side diff windows |
 
-You can also run `:Neotree vs_diff`.
-
-## Keymaps (in the tree)
+## Keymaps (in the panel)
 
 | Key | Action |
 | --- | --- |
@@ -80,7 +92,7 @@ You can also run `:Neotree vs_diff`.
 | `g` | Generate a commit message from staged changes |
 | `c` | Commit using the box (opens it if empty). Push, pull, or sync when the tree is clean |
 | `R` | Refresh |
-| `q` | Close the tree |
+| `q` | Close the panel |
 
 Visual mode `s` / `u` / `x` apply to the selection.
 
@@ -94,7 +106,7 @@ when `snacks.nvim` is installed). `q` / `<Esc>` dismisses it — no leftover spl
 | `float` (default) | One formatted inline/unified window | `q` |
 | `split` | Side-by-side vim diff | `q` in either pane closes **both** |
 
-`D` in the tree toggles float ↔ split. `Q` closes the current diff.
+`D` in the panel toggles float ↔ split. `Q` closes the current diff.
 `:VsDiffClose` does the same.
 
 Split mapping (when you want it):
@@ -110,7 +122,7 @@ Split mapping (when you want it):
 
 ## Commit box
 
-The top of the tree is a small VS Code-style commit area:
+The top of the panel is a small VS Code-style commit area:
 
 1. `<CR>` on **Message** to write or edit a draft (`<Esc>` / `q` / `<C-s>` saves)
 2. `<CR>` on **Generate** (or press `g`) to draft a message from `git diff --cached`
@@ -155,6 +167,13 @@ require("vs-diff").setup({
   confirm_discard_all = true,
   view = "tree", -- or "list"
   commit_confirm_stage_all = true,
+  bind_to_cwd = true,
+  -- auto: neo-tree → snacks explorer → built-in panel
+  backend = "auto", -- or "neo-tree", "snacks", "panel"
+  panel = {
+    position = "left", -- or "right"
+    width = 36,
+  },
   diff = {
     style = "float", -- or "split"
     layout = "vertical", -- split only
@@ -166,15 +185,6 @@ require("vs-diff").setup({
   },
 })
 ```
-
-Source-specific neo-tree options live under `vs_diff` in `neo-tree.setup()`
-(mappings, renderers, `bind_to_cwd`, …).
-
-## How it differs from neo-tree `git_status`
-
-Built-in `git_status` is one tree of every dirty file. vs-diff splits staged vs
-unstaged the way VS Code does, opens a diff instead of the file, and uses
-stage / unstage / discard as the primary keys.
 
 ## Tests
 
