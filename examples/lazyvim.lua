@@ -1,16 +1,16 @@
 -- Drop this file into ~/.config/nvim/lua/plugins/vs-diff.lua
 return {
   {
-    dir = "~/projects/vs-diff",
-    name = "vs-diff",
-    dependencies = { "nvim-neo-tree/neo-tree.nvim" },
+    "benwyrosdick/vs-diff",
     opts = {},
     keys = {
-      { "<leader>ge", "<cmd>VsDiff<cr>", desc = "Git Changes (SCM)" },
+      { "<leader>ge", "<cmd>VsDiff toggle<cr>", desc = "Git Changes (SCM)" },
     },
   },
+  -- If neo-tree is installed, register vs-diff as a source.
   {
     "nvim-neo-tree/neo-tree.nvim",
+    optional = true,
     opts = function(_, opts)
       return require("vs-diff").extend_neo_tree_opts(opts)
     end,

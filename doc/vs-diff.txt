@@ -1,25 +1,24 @@
-*vs-diff.txt*  VS Code-style git changes tree for neo-tree
+*vs-diff.txt*  VS Code-style git SCM panel for Neovim
 
 ==============================================================================
 INTRO                                                           *vs-diff*
 
-vs-diff is a neo-tree source that shows unstaged, staged, and conflicted
-files in separate trees. Select a file to open a side-by-side diff, then
-stage, unstage, or discard from the tree.
+vs-diff shows unstaged, staged, and conflicted files in separate trees.
+Select a file to open a side-by-side diff, then stage, unstage, or discard
+from the panel.
 
-Requires |neo-tree.nvim|.
+It hosts itself in neo-tree when that plugin is installed, in the Snacks
+explorer sidebar when explorer is enabled, or in a built-in panel otherwise.
+Override with `opts.backend`.
 
 ==============================================================================
 COMMANDS                                               *vs-diff-commands*
 
 :VsDiff [focus|show|toggle|close]                      *:VsDiff*
-    Open or focus the SCM tree. `toggle` hides it if it is already visible.
+    Open or focus the SCM panel. `toggle` hides it if it is already visible.
 
 :VsDiffClose                                           *:VsDiffClose*
     Close the side-by-side diff windows opened by vs-diff.
-
-:Neotree vs_diff                                       *:Neotree-vs_diff*
-    Same tree, via neo-tree's own command.
 
 ==============================================================================
 MAPPINGS                                               *vs-diff-mappings*
@@ -38,7 +37,7 @@ a           Toggle tree vs flat list
 g           Generate a commit message from staged changes (CLI or API)
 c           Commit, or push / pull / sync when the working tree is clean
 R           Refresh
-q           Close the tree
+q           Close the panel
 
 Visual-mode s / u / x apply to the selected nodes.
 
@@ -52,12 +51,10 @@ SETUP                                                     *vs-diff-setup*
     require("vs-diff").setup({
       confirm_discard = true,
       view = "tree",
+      backend = "auto",
+      panel = { position = "left", width = 36 },
       diff = { layout = "vertical" },
       ai = { backend = "auto", env = "XAI_API_KEY", model = "grok-4.5" },
-    })
-
-    require("neo-tree").setup({
-      sources = { "filesystem", "buffers", "git_status", "vs_diff" },
     })
 <
 
@@ -65,10 +62,5 @@ AI generate (`g` / Generate) uses a local CLI if one is on PATH:
 grok, claude, copilot, codex, gemini, llm, or `gh copilot`. Otherwise it
 falls back to the SpaceXAI HTTP API (`XAI_API_KEY`). Override with
 `opts.ai.backend` or `opts.ai.command`.
-
-Or, from LazyVim: >
-
-    require("vs-diff").extend_neo_tree_opts(opts)
-<
 
  vim:tw=78:ts=8:noet:ft=help:norl:

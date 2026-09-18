@@ -45,12 +45,7 @@ local function find_marked(side)
 end
 
 local function is_tree_win(win)
-  if not util.win_valid(win) then
-    return false
-  end
-  local buf = vim.api.nvim_win_get_buf(win)
-  local ft = vim.bo[buf].filetype
-  return ft == "neo-tree" or ft == "neo-tree-popup"
+  return util.is_sidebar_win(win)
 end
 
 local function pick_editor_win()

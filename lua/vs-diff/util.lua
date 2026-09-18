@@ -111,4 +111,18 @@ function M.buf_valid(buf)
   return type(buf) == "number" and buf > 0 and vim.api.nvim_buf_is_valid(buf)
 end
 
+function M.is_sidebar_win(win)
+  if not M.win_valid(win) then
+    return false
+  end
+  local ft = vim.bo[vim.api.nvim_win_get_buf(win)].filetype
+  if ft == "vs-diff" or ft == "neo-tree" or ft == "neo-tree-popup" then
+    return true
+  end
+  if type(ft) == "string" and ft:match("^snacks_") then
+    return true
+  end
+  return false
+end
+
 return M

@@ -7,6 +7,14 @@ local defaults = {
   confirm_discard_all = true,
   view = "tree", -- "tree" | "list"
   commit_confirm_stage_all = true,
+  bind_to_cwd = true,
+  refresh_on_write = true,
+  -- auto: neo-tree if installed, else snacks explorer if enabled, else the built-in panel
+  backend = "auto", -- "auto" | "neo-tree" | "snacks" | "panel"
+  panel = {
+    position = "left", -- "left" | "right"
+    width = 36,
+  },
   diff = {
     -- float: one snacks-style window, q dismisses (default)
     -- split: side-by-side vim diff (q closes the pair)
